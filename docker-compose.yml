@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    env_file:
+      - .env
+
+  backend:
+    build: .
+    restart: unless-stopped
+    command: bash -c "waitforit -host=db -port=5432 --timeout 30 python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    env_file:
+      - .env
+    stdin_open: true
+    tty: true
+
+  redis:
+    image: redis:7.0-alpine
+  celery:
+    restart: always
+    build:
+      context: .
+    command: celery -A config worker -l info
+    volumes:
+      - .:/code
+    depends_on:
+      - db
+      - redis
+      - backend
+    env_file:
+      - .env
