@@ -18,7 +18,19 @@ class TestCountWordsOccurrencesTask(TestCase):
     }
 
     def test_count_words_occurrences_in_file(self):
-        count_words_occurrences_in_file("tests/test_files/test.txt")
+        count_words_occurrences_in_file("tests/test_files/test.txt", delimiters=[" "])
+
+        for k, v in self.words_occurrences_in_file_dict.items():
+            number_of_occurrence = WordOccurrence.objects.get(word=k).number_of_occurrence
+            self.assertEqual(number_of_occurrence, v)
+
+    def test_count_words_occurrences_in_file_with_special_characters(self):
+        delimiters_used_in_test_file = ["_", "!", "$", ";", "+", ",", ".", "^", " "]
+        count_words_occurrences_in_file(
+            "tests/test_files/test_one_line.txt",
+            delimiters=delimiters_used_in_test_file,
+            chunks_size=10,
+        )
 
         for k, v in self.words_occurrences_in_file_dict.items():
             number_of_occurrence = WordOccurrence.objects.get(word=k).number_of_occurrence

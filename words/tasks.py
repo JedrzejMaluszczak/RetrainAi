@@ -16,6 +16,7 @@ logger = get_task_logger(__name__)
 def count_words_occurrences_in_file(
         file_path: str,
         delimiters: List[str],
+        chunks_size=1000,
         split_on_new_line=True,
 ):
     """
@@ -27,21 +28,26 @@ def count_words_occurrences_in_file(
         path to file in local system
     delimiters: str
         list of characters which separate words
+    chunks_size: int
+        chunk size
     split_on_new_line: bool
         flag telling if string should be split on new line
     """
     logger.info("counting words in file...")
     with transaction.atomic(), open(file_path, "r") as file:
-        for data in read_chunks(file):
+        for data in read_chunks(file, chunks_size):
+            # check against end of the word
             if data[-1] not in delimiters:
+                # iterate over small chunks until get the end of file or end of word
                 for char in read_chunks(file, 1):
                     if char in delimiters:
                         break
                     else:
                         data += char
-
+            # split string into list of words
             regex = create_regex_from_string(delimiters, split_on_new_line)
             temp = re.split(regex, data)
+            # remove empty strings from list
             temp[:] = [x for x in temp if x]
 
             for word in temp:
