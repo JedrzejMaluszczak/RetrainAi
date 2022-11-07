@@ -40,7 +40,7 @@ class AbstractWordCounterFileInputProcessor(AbstractWordCounterInputProcessor):
     """
 
     def process(self):
-        count_words_occurrences_in_file.delay(self.value)
+        count_words_occurrences_in_file.delay(self.value, [" "])
 
     def validate(self):
         if not os.path.exists(self.value):
